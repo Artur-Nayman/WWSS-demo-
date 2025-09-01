@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wide Work Search — Демонстраційний інтерфейс</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #111834;
+      --panel-2: #0e1530;
+      --muted: #9fb0d1;
+      --text: #e8eefc;
+      --brand: #6aa3ff;
+      --brand-2:#80e9ff;
+      --danger:#ff6b6b;
+      --ok:#37d399;
+      --warn:#f0b429;
+      --chip:#1b2550;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg),#060a18 60%);
+      color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+
+    header{
+      position:sticky;top:0;z-index:50;backdrop-filter:saturate(130%) blur(8px);
+      background:rgba(6,10,24,.7); border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .toolbar{display:grid;gap:12px;grid-template-columns: 1fr auto auto;align-items:center;padding:16px 0}
+    @media (max-width: 840px){
+      .toolbar{grid-template-columns: 1fr;}
+    }
+    .logo{display:flex;gap:12px;align-items:center}
+    .logo .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:var(--shadow)}
+    .logo h1{font-size:18px;margin:0;letter-spacing:.2px}
+
+    .search{position:relative}
+    .search input{
+      width:100%;padding:14px 44px 14px 44px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
+      background:var(--panel); color:var(--text); outline:none;transition:border .2s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), var(--shadow);
+    }
+    .search input::placeholder{color: #9db0d5}
+    .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.8}
+    .clear-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;padding:8px}
+    .clear-btn:hover{color:var(--text)}
+
+    .controls{display:flex;gap:12px;align-items:center}
+    .select, .toggle{position:relative}
+    select{
+      appearance:none;background:var(--panel); color:var(--text); border:1px solid rgba(255,255,255,.08);
+      padding:12px 42px 12px 14px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)
+    }
+    .select:after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.7}
+
+    .grid{display:grid;grid-template-columns: repeat(12, 1fr);gap:16px;margin-top:18px}
+    .left{grid-column: span 3}
+    .right{grid-column: span 9}
+    @media (max-width: 1000px){.left{grid-column: span 12}.right{grid-column: span 12}}
+
+    .panel{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid rgba(255,255,255,.06); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* FILTERS (optional lightweight) */
+    .filters{padding:16px}
+    .filters h3{margin:0 0 12px 2px;font-size:14px;color:var(--muted);letter-spacing:.2px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{border:1px solid rgba(255,255,255,.08);background:var(--chip);padding:8px 10px;border-radius:999px;font-size:12px;color:#cfe0ff;cursor:pointer}
+    .chip.active{background:linear-gradient(135deg,rgba(128,233,255,.25),rgba(106,163,255,.25));border-color:rgba(128,233,255,.5)}
+
+    /* RESULT COUNTER */
+    .result-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .result-bar .count{color:var(--muted)}
+
+    /* CARDS */
+    .cards{display:grid;grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;padding:16px}
+    .card{position:relative;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:14px; background:linear-gradient(180deg,#131b3b,#0f1633); border:1px solid rgba(255,255,255,.06); box-shadow: var(--shadow)}
+    .card .title{font-size:16px;margin:0 0 4px}
+    .company{font-size:13px;color:#c8d7f7}
+    .meta{display:flex;flex-wrap:wrap;gap:8px}
+    .badge{font-size:11px;border:1px solid rgba(255,255,255,.1);padding:4px 8px;border-radius:999px;color:#cfe0ff;background:rgba(255,255,255,.04)}
+    .desc{font-size:13px;color:#d6e3ffb4;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+    .apply{border:none;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04122c;font-weight:700;padding:10px 12px;border-radius:12px;cursor:pointer}
+    .save{border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);padding:9px 12px;border-radius:12px;cursor:pointer}
+    .deadline{font-size:12px;color:#cfe0ff}
+    .deadline.soon{color:var(--warn)}
+    .deadline.overdue{color:var(--danger)}
+
+    /* EMPTY */
+    .empty{padding:32px;text-align:center;color:var(--muted)}
+
+    /* FOOTER */
+    footer{padding:24px 0;color:var(--muted);text-align:center}
+    a { color: var(--brand-2) }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="toolbar" role="search">
+        <div class="logo" aria-label="Wide Work Search">
+          <div class="mark" aria-hidden="true"></div>
+          <h1>Wide Work Search</h1>
+        </div>
+        <div class="search" style="max-width:720px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input id="searchInput" type="search" placeholder="Пошук: назва, компанія, місто, стек... (наприклад, React, Helsinki)" aria-label="Пошук вакансій" />
+          <button class="clear-btn" id="clearBtn" aria-label="Очистити пошук">✕</button>
+        </div>
+        <div class="controls">
+          <div class="select">
+            <label class="visually-hidden" for="sortSelect">Сортування</label>
+            <select id="sortSelect" aria-label="Сортувати за">
+              <option value="relevance">Релевантністю</option>
+              <option value="newest">Найновіші</option>
+              <option value="deadline">Найближчий дедлайн</option>
+              <option value="salary">Найвища зарплата</option>
+              <option value="company">Компанія (A→Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <aside class="left panel" aria-label="Швидкі фільтри">
+        <div class="filters">
+          <h3>Популярні теги</h3>
+          <div class="chips" id="chips"></div>
+        </div>
+      </aside>
+      <section class="right panel" aria-live="polite">
+        <div class="result-bar">
+          <div class="count" id="resultCount">Завантаження…</div>
+          <div class="count"><span id="timer"></span></div>
+        </div>
+        <div class="cards" id="cards" role="list"></div>
+        <div class="empty" id="empty" hidden>Нічого не знайдено. Спробуйте змінити пошук або теги.</div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">Демо-інтерфейс без бекенду • © Wide Work Search</div>
+  </footer>
+
+<script>
+// --- Дані (демо) ---
+const JOBS = [
+  {
+    id: '1', title: 'Frontend Developer (React)', company: 'Aurora Tech', location: 'Helsinki, FI', remote: 'Hybrid',
+    postedAt: daysAgo(2), deadlineAt: daysFrom(12), salary: 4600, currency: 'EUR',
+    skills: ['React','TypeScript','CSS','REST'],
+    description: 'Побудова UI для B2B-платформи. React 18, сучасний стек, робота з компонентами та продуктивністю.',
+    applyUrl: '#'
+  },
+  { id:'2', title:'Junior Backend Engineer', company:'Polar Labs', location:'Tampere, FI', remote:'On-site', postedAt: daysAgo(6), deadlineAt: daysFrom(6), salary: 3500, currency:'EUR', skills:['Python','FastAPI','PostgreSQL'], description:'Розробка REST API, інтеграції, юніт-тести, робота з БД.', applyUrl:'#' },
+  { id:'3', title:'Data Analyst Intern', company:'Nordic Analytics', location:'Remote', remote:'Remote', postedAt: daysAgo(1), deadlineAt: daysFrom(20), salary: 2000, currency:'EUR', skills:['SQL','Excel','Python'], description:'Стажування: збирання та аналіз даних, дашборди, звіти.', applyUrl:'#' },
+  { id:'4', title:'Full-Stack Developer', company:'BlueWave', location:'Espoo, FI', remote:'Hybrid', postedAt: daysAgo(3), deadlineAt: daysFrom(4), salary: 5200, currency:'EUR', skills:['Node.js','React','AWS','Docker'], description:'Розробка SaaS: від бекенду до фронтенду, CI/CD, мікросервіси.', applyUrl:'#' },
+  { id:'5', title:'QA Engineer', company:'Arctic Mobile', location:'Oulu, FI', remote:'Hybrid', postedAt: daysAgo(8), deadlineAt: daysFrom(10), salary: 3800, currency:'EUR', skills:['Testing','Cypress','Playwright'], description:'E2E, інтеграційні тести, покриття, тестова документація.', applyUrl:'#' },
+  { id:'6', title:'DevOps Engineer', company:'Fjord Systems', location:'Turku, FI', remote:'Hybrid', postedAt: daysAgo(4), deadlineAt: daysFrom(16), salary: 5900, currency:'EUR', skills:['Kubernetes','Terraform','AWS','CI/CD'], description:'Інфраструктура як код, спостережуваність, оптимізація витрат.', applyUrl:'#' },
+  { id:'7', title:'Product Designer', company:'Northern UX', location:'Helsinki, FI', remote:'Hybrid', postedAt: daysAgo(7), deadlineAt: daysFrom(7), salary: 4300, currency:'EUR', skills:['Figma','UX Research','Design Systems'], description:'Дослідження користувачів, прототипи, системи дизайну.', applyUrl:'#' },
+  { id:'8', title:'iOS Developer', company:'SnowApps', location:'Remote', remote:'Remote', postedAt: daysAgo(5), deadlineAt: daysFrom(9), salary: 5400, currency:'EUR', skills:['Swift','SwiftUI','Xcode'], description:'Розробка iOS-додатків, SwiftUI, інтеграції з бекендом.', applyUrl:'#' },
+  { id:'9', title:'Security Engineer', company:'SafeNord', location:'Helsinki, FI', remote:'Hybrid', postedAt: daysAgo(2), deadlineAt: daysFrom(3), salary: 6100, currency:'EUR', skills:['AppSec','OWASP','Threat Modeling'], description:'Безпека SDLC, ревʼю, автоматизація перевірок.', applyUrl:'#' },
+  { id:'10', title:'ML Engineer', company:'Aurora Tech', location:'Remote', remote:'Remote', postedAt: daysAgo(9), deadlineAt: daysFrom(21), salary: 6400, currency:'EUR', skills:['PyTorch','MLOps','NLP'], description:'Пайплайни ML, продакшн моделей, моніторинг.', applyUrl:'#' },
+  { id:'11', title:'Project Manager', company:'BlueWave', location:'Espoo, FI', remote:'Hybrid', postedAt: daysAgo(11), deadlineAt: daysFrom(5), salary: 5000, currency:'EUR', skills:['Agile','Scrum','Jira'], description:'Ведення продуктового беклогу, планування спринтів, звітність.', applyUrl:'#' },
+  { id:'12', title:'Frontend Intern', company:'Polar Labs', location:'Tampere, FI', remote:'On-site', postedAt: daysAgo(1), deadlineAt: daysFrom(12), salary: 1800, currency:'EUR', skills:['HTML','CSS','JavaScript'], description:'Стажування у фронтенді: верстка, компоненти, базовий JS.', applyUrl:'#' }
+];
+
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
+function daysFrom(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString(); }
+
+// --- Стан ---
+const state = {
+  query: '',
+  sort: 'relevance',
+  tags: new Set(),
+};
+
+const refs = {
+  search: document.getElementById('searchInput'),
+  clear: document.getElementById('clearBtn'),
+  sort: document.getElementById('sortSelect'),
+  chips: document.getElementById('chips'),
+  cards: document.getElementById('cards'),
+  empty: document.getElementById('empty'),
+  count: document.getElementById('resultCount'),
+  timer: document.getElementById('timer'),
+};
+
+// --- Генерація тегів ---
+const popularTags = (() => {
+  const m = new Map();
+  JOBS.forEach(j => j.skills.forEach(s => m.set(s, (m.get(s)||0)+1)));
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(x=>x[0]);
+})();
+popularTags.forEach(tag => {
+  const el = document.createElement('button');
+  el.className = 'chip';
+  el.textContent = tag;
+  el.setAttribute('aria-pressed','false');
+  el.addEventListener('click', () => {
+    if(state.tags.has(tag)){ state.tags.delete(tag); el.classList.remove('active'); el.setAttribute('aria-pressed','false'); }
+    else { state.tags.add(tag); el.classList.add('active'); el.setAttribute('aria-pressed','true'); }
+    render();
+  });
+  refs.chips.appendChild(el);
+});
+
+// --- Обробники ---
+refs.search.addEventListener('input', debounce(() => { state.query = refs.search.value.trim(); render(); }, 220));
+refs.clear.addEventListener('click', () => { refs.search.value=''; state.query=''; render(); refs.search.focus(); });
+refs.sort.addEventListener('change', () => { state.sort = refs.sort.value; render(); });
+
+// --- Рендер ---
+function render(){
+  const start = performance.now();
+  let list = JOBS.map(enrich);
+
+  // Фільтр за пошуком і тегами
+  const q = state.query.toLowerCase();
+  const tagArr = [...state.tags];
+  list = list.map(job => ({...job, score: relevance(job, q, tagArr)}))
+             .filter(j => j.score > (q||tagArr.length?0: -Infinity));
+
+  // Сортування
+  list.sort(sorter(state.sort));
+
+  // Вивід
+  refs.cards.innerHTML = '';
+  if(!list.length){ refs.empty.hidden = false; refs.count.textContent = '0 результатів'; } else {
+    refs.empty.hidden = true;
+    list.forEach(job => refs.cards.appendChild(card(job)));
+    refs.count.textContent = `${list.length} результатів`;
+  }
+
+  const dt = performance.now()-start;
+  refs.timer.textContent = `Рендер: ${dt.toFixed(1)} мс`;
+}
+
+function enrich(job){
+  const deadlineDays = daysLeft(job.deadlineAt);
+  const postedDays = daysSince(job.postedAt);
+  return { ...job, deadlineDays, postedDays };
+}
+
+function daysLeft(dateISO){
+  const d = new Date(dateISO); const now = new Date();
+  return Math.ceil((d - now) / (1000*60*60*24));
+}
+function daysSince(dateISO){
+  const d = new Date(dateISO); const now = new Date();
+  return Math.floor((now - d) / (1000*60*60*24));
+}
+
+function relevance(job, q, tags){
+  if(!q && !tags.length) return 0; // neutral
+  let s = 0;
+  const fields = [job.title, job.company, job.location, job.description, job.skills.join(' ')].join(' ').toLowerCase();
+  if(q){
+    const words = q.split(/\s+/).filter(Boolean);
+    for(const w of words){
+      const occ = countOccurrences(fields, w);
+      s += occ * 10; // вага входжень
+      if(job.title.toLowerCase().includes(w)) s += 20; // бонус за title
+      if(job.company.toLowerCase().includes(w)) s += 8;
+    }
+  }
+  if(tags.length){
+    for(const t of tags){ if(job.skills.map(x=>x.toLowerCase()).includes(t.toLowerCase())) s += 15; }
+  }
+  // невеликі бонуси: новизна і зарплата
+  s += Math.max(0, 8 - job.postedDays);
+  s += (job.salary||0)/2000;
+  return s;
+}
+function countOccurrences(str, sub){
+  let n=0, i=0; while((i = str.indexOf(sub, i)) !== -1){ n++; i += sub.length; } return n;
+}
+
+function sorter(kind){
+  switch(kind){
+    case 'newest': return (a,b)=> new Date(b.postedAt) - new Date(a.postedAt);
+    case 'deadline': return (a,b)=> a.deadlineDays - b.deadlineDays;
+    case 'salary': return (a,b)=> (b.salary||0) - (a.salary||0);
+    case 'company': return (a,b)=> a.company.localeCompare(b.company);
+    case 'relevance':
+    default: return (a,b)=> (b.score||0) - (a.score||0);
+  }
+}
+
+function card(job){
+  const el = document.createElement('article');
+  el.className = 'card';
+  el.setAttribute('role','listitem');
+  el.innerHTML = `
+    <h3 class="title">${escapeHtml(job.title)}</h3>
+    <div class="company">${escapeHtml(job.company)} • ${escapeHtml(job.location)} • <span class="badge">${job.remote}</span></div>
+    <div class="meta">
+      ${job.skills.slice(0,5).map(s=>`<span class="badge">${escapeHtml(s)}</span>`).join('')}
+    </div>
+    <p class="desc">${escapeHtml(job.description)}</p>
+    <div class="footer">
+      <div class="deadline ${deadlineClass(job.deadlineDays)}" title="Дедлайн подачі">
+        ${deadlineLabel(job.deadlineDays)}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="save" aria-label="Зберегти вакансію" data-id="${job.id}">Зберегти</button>
+        <a class="apply" href="${job.applyUrl}" target="_blank" rel="noopener">Відкрити</a>
+      </div>
+    </div>`;
+
+  // Додавання обробників
+  el.querySelector('.save').addEventListener('click', (e)=>{
+    const id = e.currentTarget.getAttribute('data-id');
+    toggleSaved(id, e.currentTarget);
+  });
+  return el;
+}
+
+function deadlineClass(d){
+  if(d < 0) return 'overdue';
+  if(d <= 3) return 'soon';
+  return '';
+}
+function deadlineLabel(d){
+  if(d < 0) return `Дедлайн минув ${Math.abs(d)} дн. тому`;
+  if(d === 0) return 'Дедлайн сьогодні';
+  if(d === 1) return 'Залишився 1 день';
+  return `Залишилось ${d} днів`;
+}
+
+// LocalStorage для збережених вакансій (демо)
+const SAVED_KEY = 'wws_saved';
+function getSaved(){ try{ return JSON.parse(localStorage.getItem(SAVED_KEY)||'[]'); }catch{return []} }
+function saveSaved(list){ localStorage.setItem(SAVED_KEY, JSON.stringify(list)); }
+function toggleSaved(id, btn){
+  const list = new Set(getSaved());
+  if(list.has(id)){ list.delete(id); btn.textContent = 'Зберегти'; }
+  else { list.add(id); btn.textContent = 'Збережено'; }
+  saveSaved([...list]);
+}
+
+// Utils
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+
+// Початковий рендер
+render();
+</script>
+</body>
+</html>
